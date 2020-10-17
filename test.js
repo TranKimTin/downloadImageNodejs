@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const readXlsxFile = require('read-excel-file/node');
 const puppeteer = require('puppeteer');
 let file = './file.xlsx';
@@ -10,13 +11,21 @@ async function main() {
     browser = await puppeteer.launch({headless: false});
     page = await browser.newPage();
     createFolder('./image');
-    let sheets = await readXlsxFile(file, { getSheets: true });
-    for (let i = 0; i < sheets.length; i++) {
-        await downloadInSheet(sheets[i].name, i + 1);
+    try{
+        let sheets = await readXlsxFile(file, { getSheets: true });
+        for (let i = 0; i < sheets.length; i++) {
+            await downloadInSheet(sheets[i].name, i + 1);
+        }
     }
-    sleep(5000);
+    catch(err){
+        console.log("loi main", err.message);
+    }
+
+    await sleep(10000);
     moveFile();
     console.log("finish");
+    console.log("SUCCESS", success, "FAIL", fail);
+
     await browser.close();
 }
 
@@ -40,7 +49,7 @@ function createFolder(path) {
 }
 
 async function downloadInSheet(sheetName, index) {
-    createFolder(`./image/${sheetName}`);
+    //createFolder(`./image/${sheetName}`);
     let data = await readXlsxFile(file, { sheet: index });
     for (let i = 0; i < data.length; i++) {
         let row = data[i];
@@ -64,7 +73,7 @@ async function downloadInSheet(sheetName, index) {
 }
 async function download1(url, filename){
     try {
-        await sleep(1000);
+        await sleep(1500);
         if(url.match(/drive\.google\.com/gi)){
             await downloadFromDriver(url, filename);
         }
@@ -98,8 +107,9 @@ async function downloadImage(url, filename) {
 async function downloadFromDriver(url, filename){
     try{
         let downloadPath = path.resolve(__dirname, `image/${filename}`);
+        console.log(downloadPath);
         await page._client.send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: downloadPath});
-        await go(url2);
+        await page.goto(url);
     }
     catch(err){
         console.log(err.message);

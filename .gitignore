@@ -20,5 +20,6 @@ tmp
 issues/
 test/fixtures/test*
 image
+image.rar
 
 .idea
